@@ -251,11 +251,20 @@
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
   <div class="progress-text" id="progressText">載入緊…</div>
 </div>
+<div id="storageWarning" style="display:none; max-width:480px; margin:10px auto 0; padding:0 20px;">
+  <div style="background:#fff3e0; border:2px solid #f0c98a; border-radius:14px; padding:10px 14px; font-size:12.5px; color:#8a5a20; line-height:1.5;">
+    ⚠️ 呢部裝置／瀏覽器暫時未能保存資料（例如私隱瀏覽模式，或直接喺「檔案」App打開）。你依然可以填寫，但關閉頁面前記得撳下面嘅「📥 匯出備份」，下次先至可以用「📤 匯入備份」還原返。
+  </div>
+</div>
 
 <div class="tabs" id="tabs"></div>
 <div class="list" id="list"><div class="loading">載入緊資料…🐰</div></div>
 
 <div class="footer-actions">
+  <button class="reset-btn" id="exportBtn" style="color:#4a90a4;">📥 匯出備份</button>
+  <button class="reset-btn" id="importBtn" style="color:#4a90a4;">📤 匯入備份</button>
+  <input type="file" id="importFile" accept="application/json" style="display:none;">
+  <br>
   <button class="reset-btn" id="resetBtn">清除所有紀錄</button>
 </div>
 
@@ -303,12 +312,44 @@ const MOODS = ["😫","😕","😐","🙂","😄"];
 let state = {};      // id -> {mood, like, thoughts}
 let activeCat = "全部";
 let saveTimers = {};
+let memStore = {};   // fallback in-memory store when localStorage is blocked
+let storageOK = true;
+
+function testStorage(){
+  try{
+    const k = "__test__" + Date.now();
+    localStorage.setItem(k, "1");
+    localStorage.removeItem(k);
+    return true;
+  }catch(e){
+    return false;
+  }
+}
 
 function storageKey(id){ return "summer2026_activity_"+id; }
 
+function safeGetItem(key){
+  if(!storageOK) return memStore[key] || null;
+  try{ return localStorage.getItem(key); }
+  catch(e){ return memStore[key] || null; }
+}
+
+function safeSetItem(key, val){
+  memStore[key] = val; // always keep an in-memory copy as backup
+  if(!storageOK) return;
+  try{ localStorage.setItem(key, val); }
+  catch(e){ /* silently fall back to memory only */ }
+}
+
+function safeRemoveItem(key){
+  delete memStore[key];
+  if(!storageOK) return;
+  try{ localStorage.removeItem(key); }catch(e){}
+}
+
 function loadAll(){
   ACTIVITIES.forEach(a=>{
-    const raw = localStorage.getItem(storageKey(a.id));
+    const raw = safeGetItem(storageKey(a.id));
     if(raw){
       try{ state[a.id] = JSON.parse(raw); }catch(e){ state[a.id] = {}; }
     } else {
@@ -331,7 +372,7 @@ function updateProgress(){
 
 function saveActivity(id){
   const s = state[id] || {};
-  try{ localStorage.setItem(storageKey(id), JSON.stringify(s)); }catch(e){}
+  safeSetItem(storageKey(id), JSON.stringify(s));
 }
 
 function debounceSave(id, hintEl){
@@ -451,22 +492,80 @@ document.getElementById("resetBtn").onclick = ()=>{
   if(!confirm("確定要清除所有已填寫嘅紀錄嗎？呢個動作無法復原。")) return;
   ACTIVITIES.forEach(a=>{
     state[a.id] = {};
-    try{ localStorage.removeItem(storageKey(a.id)); }catch(e){}
+    safeRemoveItem(storageKey(a.id));
   });
   renderList();
   updateProgress();
 };
 
-(function init(){
+document.getElementById("exportBtn").onclick = ()=>{
+  const backup = { savedAt: new Date().toISOString(), data: state };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `暑期活動記錄備份_${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+};
+
+document.getElementById("importBtn").onclick = ()=>{
+  document.getElementById("importFile").click();
+};
+
+document.getElementById("importFile").onchange = (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    try{
+      const parsed = JSON.parse(ev.target.result);
+      const data = parsed.data || parsed; // 容許直接匯入 state 物件
+      ACTIVITIES.forEach(a=>{
+        if(data[a.id]){
+          state[a.id] = data[a.id];
+          saveActivity(a.id);
+        }
+      });
+      renderList();
+      updateProgress();
+      alert("匯入成功！");
+    }catch(err){
+      alert("呢個檔案格式唔啱，未能匯入。");
+    }
+    e.target.value = "";
+  };
+  reader.readAsText(file);
+};
+
+function init(){
+  storageOK = testStorage();
+  if(!storageOK){
+    document.getElementById("storageWarning").style.display = "block";
+  }
   try{
     loadAll();
   }catch(e){
     ACTIVITIES.forEach(a=>{ state[a.id] = {}; });
   }
-  renderTabs();
-  renderList();
-  updateProgress();
-})();
+  try{
+    renderTabs();
+    renderList();
+    updateProgress();
+  }catch(e){
+    document.getElementById("list").innerHTML =
+      '<div class="loading">哎呀，載入時出咗少少問題 😢<br>請試吓重新整理頁面。</div>';
+  }
+}
+
+if(document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", init);
+}else{
+  init();
+}
 </script>
 </body>
 </html>
