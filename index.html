@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 暑期活動體驗記錄</title>
+<style>
+  :root{
+    --cream:#fffaf0;
+    --ink:#4b3c37;
+    --ink-soft:#96877d;
+    --sky-top:#b0e0f5;
+    --sky-bot:#fffaeb;
+    --sports:#78c5ea;    --sports-l:#deeffa;
+    --music:#be96dc;     --music-l:#eee2f7;
+    --art:#f08caa;       --art-l:#fde0e9;
+    --think:#6ebe8c;     --think-l:#dbf1e0;
+    --travel:#ebaf5a;    --travel-l:#fce9cd;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Noto Sans TC","PingFang HK","Microsoft JhengHei",sans-serif;
+    background:linear-gradient(180deg,var(--sky-top) 0%, var(--sky-bot) 35%, var(--cream) 100%);
+    color:var(--ink);
+    min-height:100vh;
+    padding-bottom:60px;
+  }
+  header{
+    text-align:center;
+    padding:28px 16px 14px;
+  }
+  header h1{
+    font-size:26px;
+    margin:0;
+    color:#e6707a;
+    font-weight:900;
+    letter-spacing:1px;
+  }
+  header .sub{
+    display:inline-block;
+    margin-top:10px;
+    background:#ffeecd;
+    border:2px solid #ecc98f;
+    border-radius:20px;
+    padding:5px 20px;
+    font-size:14px;
+    font-weight:700;
+    color:#96723f;
+  }
+  .progress-wrap{
+    max-width:480px;
+    margin:14px auto 0;
+    padding:0 20px;
+  }
+  .progress-bar{
+    background:#fff;
+    border-radius:20px;
+    height:14px;
+    overflow:hidden;
+    border:2px solid #f0d9b5;
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg,#ffd27a,#ff9eb0);
+    width:0%;
+    transition:width .4s ease;
+  }
+  .progress-text{
+    text-align:center;
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-top:6px;
+    font-weight:700;
+  }
+  .tabs{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding:16px 16px 4px;
+    max-width:520px;
+    margin:0 auto;
+  }
+  .tab{
+    flex:0 0 auto;
+    padding:8px 16px;
+    border-radius:16px;
+    font-size:13px;
+    font-weight:700;
+    border:2px solid #e5d9cc;
+    background:#fff;
+    color:var(--ink-soft);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .tab.active{
+    background:var(--ink);
+    color:#fff;
+    border-color:var(--ink);
+  }
+  .list{
+    max-width:520px;
+    margin:0 auto;
+    padding:8px 16px 40px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  .card{
+    background:#fff;
+    border-radius:20px;
+    border:3px solid var(--accent);
+    overflow:hidden;
+    box-shadow:0 4px 0 rgba(0,0,0,0.04);
+  }
+  .card.done{
+    box-shadow:0 4px 0 rgba(0,0,0,0.04), inset 0 0 0 999px rgba(255,255,255,0.0);
+  }
+  .card-head{
+    background:var(--accent-l);
+    padding:14px 16px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .card-icon{
+    width:46px;height:46px;
+    border-radius:50%;
+    background:#fff;
+    border:2px solid var(--accent);
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;
+    flex:0 0 auto;
+  }
+  .card-title{
+    flex:1;
+    min-width:0;
+  }
+  .card-title .no{
+    font-size:11px;
+    font-weight:800;
+    color:var(--accent);
+  }
+  .card-title .name{
+    font-size:16px;
+    font-weight:800;
+    color:var(--ink);
+    line-height:1.3;
+  }
+  .card-check{
+    width:24px;height:24px;
+    border-radius:50%;
+    border:2px solid var(--accent);
+    background:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;
+    color:#fff;
+    flex:0 0 auto;
+  }
+  .card-check.on{
+    background:var(--accent);
+  }
+  .card-body{
+    padding:14px 16px 18px;
+  }
+  .field-label{
+    font-size:13px;
+    font-weight:800;
+    margin:10px 0 8px;
+    color:var(--ink);
+  }
+  .moods{
+    display:flex;
+    justify-content:space-between;
+    gap:6px;
+  }
+  .mood-btn{
+    flex:1;
+    aspect-ratio:1;
+    max-width:52px;
+    border-radius:50%;
+    border:2px solid #e5d9cc;
+    background:#fdfaf5;
+    font-size:22px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    transition:transform .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .mood-btn.selected{
+    border-color:var(--accent);
+    background:var(--accent-l);
+    transform:scale(1.12);
+  }
+  input[type=text], textarea{
+    width:100%;
+    border:2px solid #e5d9cc;
+    border-radius:12px;
+    padding:10px 12px;
+    font-size:14px;
+    font-family:inherit;
+    color:var(--ink);
+    background:#fdfaf5;
+    resize:none;
+  }
+  input[type=text]:focus, textarea:focus{
+    outline:none;
+    border-color:var(--accent);
+    background:#fff;
+  }
+  textarea{
+    min-height:70px;
+    line-height:1.5;
+  }
+  .save-hint{
+    font-size:11px;
+    color:var(--ink-soft);
+    text-align:right;
+    margin-top:6px;
+    height:14px;
+  }
+  .footer-actions{
+    max-width:520px;
+    margin:0 auto;
+    padding:0 16px;
+    text-align:center;
+  }
+  .reset-btn{
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    font-size:12px;
+    text-decoration:underline;
+    cursor:pointer;
+    padding:10px;
+  }
+  .loading{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--ink-soft);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>2026 暑期活動體驗記錄</h1>
+  <div class="sub">看我的暑假多好玩過！</div>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-text" id="progressText">載入緊…</div>
+</div>
+
+<div class="tabs" id="tabs"></div>
+<div class="list" id="list"><div class="loading">載入緊資料…🐰</div></div>
+
+<div class="footer-actions">
+  <button class="reset-btn" id="resetBtn">清除所有紀錄</button>
+</div>
+
+<script>
+const CATS = {
+  "運動": {accent:"var(--sports)", light:"var(--sports-l)"},
+  "音樂": {accent:"var(--music)", light:"var(--music-l)"},
+  "藝術": {accent:"var(--art)", light:"var(--art-l)"},
+  "思考": {accent:"var(--think)", light:"var(--think-l)"},
+  "旅行": {accent:"var(--travel)", light:"var(--travel-l)"},
+};
+
+const ACTIVITIES = [
+  ["運動","Roller布章一","🛼"],
+  ["運動","Roller曲棍球","🏑"],
+  ["運動","草地滾球","🎳"],
+  ["運動","羽毛球","🏸"],
+  ["運動","兒童小型網球","🎾"],
+  ["運動","親子動感龍舟體驗","🐉"],
+  ["運動","大埔青年空間泰拳","🥊"],
+  ["運動","Kids Thai兒童泰拳班","🥊"],
+  ["音樂","非洲鼓","🥁"],
+  ["音樂","小結他","🎸"],
+  ["藝術","魔法羊毛氈設計學園","🧶"],
+  ["藝術","小小魔術師","🎩"],
+  ["藝術","拼豆","📿"],
+  ["藝術","小小甜品站－鳥結糖","🍬"],
+  ["藝術","與立彥看兒童劇","🎭"],
+  ["藝術","奶油膠","🧴"],
+  ["藝術","琉璃花髮簪","🌸"],
+  ["藝術","捏捏膠","🧸"],
+  ["藝術","3D打印筆","🖊️"],
+  ["思考","Margaret英文閱讀理解","📖"],
+  ["思考","奧數B班","🎲"],
+  ["思考","國際象棋入門班","♟️"],
+  ["思考","小小象棋王挑戰賽","🏆"],
+  ["思考","STEM","🤖"],
+  ["思考","密失．謎逃","🔍"],
+  ["旅行","深圳龍崗","🏙️"],
+  ["旅行","桂林","🏞️"],
+].map((a,i)=>({id:i+1, cat:a[0], name:a[1], icon:a[2]}));
+
+const MOODS = ["😫","😕","😐","🙂","😄"];
+
+let state = {};      // id -> {mood, like, thoughts}
+let activeCat = "全部";
+let saveTimers = {};
+
+function storageKey(id){ return "summer2026_activity_"+id; }
+
+function loadAll(){
+  ACTIVITIES.forEach(a=>{
+    const raw = localStorage.getItem(storageKey(a.id));
+    if(raw){
+      try{ state[a.id] = JSON.parse(raw); }catch(e){ state[a.id] = {}; }
+    } else {
+      state[a.id] = {};
+    }
+  });
+}
+
+function isDone(id){
+  const s = state[id] || {};
+  return s.mood !== undefined && s.mood !== null;
+}
+
+function updateProgress(){
+  const total = ACTIVITIES.length;
+  const done = ACTIVITIES.filter(a=>isDone(a.id)).length;
+  document.getElementById("progressFill").style.width = (done/total*100)+"%";
+  document.getElementById("progressText").textContent = `已記錄 ${done} / ${total} 個活動`;
+}
+
+function saveActivity(id){
+  const s = state[id] || {};
+  try{ localStorage.setItem(storageKey(id), JSON.stringify(s)); }catch(e){}
+}
+
+function debounceSave(id, hintEl){
+  clearTimeout(saveTimers[id]);
+  saveTimers[id] = setTimeout(()=>{
+    saveActivity(id);
+    if(hintEl){ hintEl.textContent = "已儲存 ✓"; setTimeout(()=>{hintEl.textContent="";}, 1500); }
+  }, 500);
+}
+
+function renderTabs(){
+  const tabsEl = document.getElementById("tabs");
+  const cats = ["全部", ...Object.keys(CATS)];
+  tabsEl.innerHTML = "";
+  cats.forEach(c=>{
+    const btn = document.createElement("button");
+    btn.className = "tab" + (c===activeCat ? " active" : "");
+    btn.textContent = c;
+    btn.onclick = ()=>{ activeCat = c; renderTabs(); renderList(); };
+    tabsEl.appendChild(btn);
+  });
+}
+
+function renderList(){
+  const listEl = document.getElementById("list");
+  listEl.innerHTML = "";
+  const items = ACTIVITIES.filter(a => activeCat==="全部" || a.cat===activeCat);
+
+  items.forEach(a=>{
+    const info = CATS[a.cat];
+    const s = state[a.id] || {};
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.setProperty("--accent", info.accent);
+    card.style.setProperty("--accent-l", info.light);
+
+    const head = document.createElement("div");
+    head.className = "card-head";
+    head.innerHTML = `
+      <div class="card-icon">${a.icon}</div>
+      <div class="card-title">
+        <div class="no">NO.${String(a.id).padStart(2,"0")} · ${a.cat}</div>
+        <div class="name">${a.name}</div>
+      </div>
+      <div class="card-check ${isDone(a.id)?"on":""}">${isDone(a.id)?"✓":""}</div>
+    `;
+
+    const body = document.createElement("div");
+    body.className = "card-body";
+
+    const moodLabel = document.createElement("div");
+    moodLabel.className = "field-label";
+    moodLabel.textContent = "我嘅心情";
+    body.appendChild(moodLabel);
+
+    const moodsWrap = document.createElement("div");
+    moodsWrap.className = "moods";
+    MOODS.forEach((m, idx)=>{
+      const mb = document.createElement("div");
+      mb.className = "mood-btn" + (s.mood===idx ? " selected" : "");
+      mb.textContent = m;
+      mb.onclick = ()=>{
+        state[a.id] = state[a.id] || {};
+        state[a.id].mood = idx;
+        saveActivity(a.id);
+        renderList();
+        updateProgress();
+      };
+      moodsWrap.appendChild(mb);
+    });
+    body.appendChild(moodsWrap);
+
+    const likeLabel = document.createElement("div");
+    likeLabel.className = "field-label";
+    likeLabel.textContent = "我最鍾意";
+    body.appendChild(likeLabel);
+
+    const likeInput = document.createElement("input");
+    likeInput.type = "text";
+    likeInput.placeholder = "寫低你最鍾意嘅嘢…";
+    likeInput.value = s.like || "";
+    const likeHint = document.createElement("div");
+    likeHint.className = "save-hint";
+    likeInput.oninput = ()=>{
+      state[a.id] = state[a.id] || {};
+      state[a.id].like = likeInput.value;
+      debounceSave(a.id, likeHint);
+    };
+    body.appendChild(likeInput);
+    body.appendChild(likeHint);
+
+    const thoughtLabel = document.createElement("div");
+    thoughtLabel.className = "field-label";
+    thoughtLabel.textContent = "我嘅感想";
+    body.appendChild(thoughtLabel);
+
+    const ta = document.createElement("textarea");
+    ta.placeholder = "講多啲你嘅感覺！";
+    ta.value = s.thoughts || "";
+    const taHint = document.createElement("div");
+    taHint.className = "save-hint";
+    ta.oninput = ()=>{
+      state[a.id] = state[a.id] || {};
+      state[a.id].thoughts = ta.value;
+      debounceSave(a.id, taHint);
+    };
+    body.appendChild(ta);
+    body.appendChild(taHint);
+
+    card.appendChild(head);
+    card.appendChild(body);
+    listEl.appendChild(card);
+  });
+}
+
+document.getElementById("resetBtn").onclick = ()=>{
+  if(!confirm("確定要清除所有已填寫嘅紀錄嗎？呢個動作無法復原。")) return;
+  ACTIVITIES.forEach(a=>{
+    state[a.id] = {};
+    try{ localStorage.removeItem(storageKey(a.id)); }catch(e){}
+  });
+  renderList();
+  updateProgress();
+};
+
+(function init(){
+  try{
+    loadAll();
+  }catch(e){
+    ACTIVITIES.forEach(a=>{ state[a.id] = {}; });
+  }
+  renderTabs();
+  renderList();
+  updateProgress();
+})();
+</script>
+</body>
+</html>
